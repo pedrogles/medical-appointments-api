@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+}
+
+model Paciente {
+  id         Int      @id @default(autoincrement())
+  nome       String
+  nascimento DateTime
+  cpf        String   @unique
+  rg         String
+  sexo       String
+  telefone   String
+  email      String
+
+  enderecoId   Int
+  planoSaudeId Int
+
+  endereco   Endereco   @relation(fields: [enderecoId], references: [id], map: "paciente_endereco_fkey")
+  planoSaude PlanoSaude @relation(fields: [planoSaudeId], references: [id], map: "paciente_plano_fkey")
+
+  observacoes String
+  createdAt   DateTime @default(now())
+
+  consultas Consulta[]
+}
+
+model Profissional {
+  id            Int      @id @default(autoincrement())
+  nome          String
+  especialidade String
+  createdAt     DateTime @default(now())
+
+  consultas Consulta[]
+}
+
+model Consulta {
+  id             Int      @id @default(autoincrement())
+  pacienteId     Int
+  profissionalId Int
+  data           DateTime
+  status         String
+  observacoes    String
+
+  paciente     Paciente     @relation(fields: [pacienteId], references: [id])
+  profissional Profissional @relation(fields: [profissionalId], references: [id])
+}
+
+model Endereco {
+  id     Int    @id @default(autoincrement())
+  rua    String
+  numero String
+  bairro String
+  cidade String
+  estado String
+  cep    String
+
+  pacientes Paciente[] // relação inversa
+}
+
+model PlanoSaude {
+  id     Int    @id @default(autoincrement())
+  nome   String
+  codigo String
+
+  pacientes Paciente[] // relação inversa
+}
+
+enum Role {
+  USER
+  ADMIN
+}
